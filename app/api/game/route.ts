@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     const result = await generateObject({
       // 3. 使用 DeepSeek-V3 模型 (便宜且极度聪明)
       // 如果你想用免费的 Qwen，可以改成: 'Qwen/Qwen2.5-72B-Instruct'
-      model: siliconFlow('deepseek-ai/DeepSeek-V3'), 
+      model: siliconFlow('Qwen/Qwen2.5-72B-Instruct'), 
       
       schema: gameSchema,
       prompt: systemPrompt,
