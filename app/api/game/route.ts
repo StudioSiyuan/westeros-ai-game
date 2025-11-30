@@ -3,47 +3,50 @@ import { z } from 'zod';
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  const { gameState, action, mapInfo } = await req.json(); // 接收 mapInfo
+  // 接收 locationName (具体的维斯特洛地名)
+  const { gameState, action, locationName } = await req.json(); 
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
   if (!apiKey) return new Response(JSON.stringify({ error: "No API Key" }), { status: 500 });
 
-  // 这里的 Prompt 更加侧重环境生成
   const systemPrompt = `
-    你是一款《权力的游戏》背景的 Roguelike 生存游戏 DM。
+    你是一款《权力的游戏》(冰与火之歌) 文字RPG的 DM。
     
-    【玩家状态】
-    HP:${gameState.hp}, 精力:${gameState.energy}
-    当前坐标: [${gameState.position.x}, ${gameState.position.y}]
-    地形类型: ${mapInfo.biome} (例如: 森林/废墟/城堡/河流)
+    【当前剧情背景】
+    玩家身处：${locationName}
+    (坐标: [${gameState.position.x}, ${gameState.position.y}])
+    玩家状态: HP ${gameState.hp}, 精力 ${gameState.energy}
+    持有物品: ${gameState.inventory.join(', ')}
     
     【玩家行动】
     "${action}"
     
-    【任务】
-    请生成这一格发生的事件。
-    1. 如果是第一次进入该坐标，生成一个环境描述 + 随机遭遇（敌人/宝物/NPC）。
-    2. 如果是"搜索"，生成获得物品或遭遇陷阱的结果。
-    3. 必须简短有力（100字以内）。
+    【生成要求】
+    1. **必须结合维斯特洛的地理设定**。
+       - 如果在【临冬城】：涉及史塔克家族、寒冷、狼。
+       - 如果在【君临】：涉及兰尼斯特、金袍子、肮脏的街道、政治阴谋。
+       - 如果在【绝境长城】：涉及守夜人、异鬼传说。
+       - 如果在【多恩】：涉及炎热、沙蛇、美酒。
+    2. 只有在玩家选择"探索"或"移动"到新区域时，才描述环境。
+    3. 风格冷酷写实，不要废话。
     
-    请严格输出 JSON:
+    请输出纯 JSON:
     {
-      "scene_text": "剧情描述",
-      "location": "地点名 (如: 黑暗森林深处)",
+      "scene_text": "剧情描述（中文）",
+      "location": "${locationName}",
       "hp_change": 数字,
       "energy_change": 数字,
       "item_gained": "物品名" 或 null,
-      "enemy_encountered": boolean (是否遇到敌人),
       "choices": [
-        { "title": "搜索区域", "desc": "消耗精力寻找物资", "risk": "low" },
-        { "title": "原地休息", "desc": "恢复少量体力", "risk": "low" },
-        { "title": "设下陷阱", "desc": "防御潜在敌人", "risk": "high" }
+        { "title": "选项1", "desc": "简短描述", "risk": "low" },
+        { "title": "选项2", "desc": "简短描述", "risk": "high" },
+        { "title": "选项3", "desc": "简短描述", "risk": "high" }
       ]
     }
   `;
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-002:generateContent?key=${apiKey}`;
     
     const response = await fetch(url, {
       method: 'POST',
