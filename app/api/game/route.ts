@@ -1,16 +1,9 @@
-import { createOpenAI } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 
-export const maxDuration = 60; // 稍微延长超时时间
+export const maxDuration = 60;
 
-// 1. 配置硅基流动 (SiliconFlow)
-const siliconFlow = createOpenAI({
-  baseURL: 'https://api.siliconflow.cn/v1', // 强制指定国内地址
-  apiKey: process.env.OPENAI_API_KEY,       // 读取 Vercel 里的 Key
-});
-
-// 2. 定义数据结构
 const gameSchema = z.object({
   scene_text: z.string().describe("剧情描述"),
   location: z.string().describe("地点"),
@@ -37,18 +30,13 @@ export async function POST(req: Request) {
 
   try {
     const result = await generateObject({
-      // 3. 使用 DeepSeek-V3 模型 (便宜且极度聪明)
-      // 如果你想用免费的 Qwen，可以改成: 'Qwen/Qwen2.5-72B-Instruct'
-      model: siliconFlow('Qwen/Qwen2.5-72B-Instruct'), 
-      
+      model: google('gemini-1.5-flash'), // 使用 Google 模型，速度快且免费
       schema: gameSchema,
       prompt: systemPrompt,
     });
-
     return result.toJsonResponse();
-    
   } catch (error) {
     console.error("AI Error:", error);
-    return new Response(JSON.stringify({ error: "AI连接失败，请检查Key余额" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "AI连接失败" }), { status: 500 });
   }
 }
