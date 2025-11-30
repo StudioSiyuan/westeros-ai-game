@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
   try {
     const result = await generateObject({
-      model: google('gemini-1.5-flash-latest'), // 使用 Google 模型，速度快且免费
+      model: google('gemini-1.5-flash-001'), // 使用 Google 模型，速度快且免费
       schema: gameSchema,
       prompt: systemPrompt,
     });
