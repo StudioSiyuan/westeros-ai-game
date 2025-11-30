@@ -42,7 +42,8 @@ export async function POST(req: Request) {
   try {
     // 2. 直接向 Google 发送 HTTP 请求 (绕过所有 SDK 兼容性问题)
     // 使用 gemini-1.5-flash，这是最稳的模型
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // 把原来的 1.5 改成 2.0，这是你列表里明确存在的模型
+const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
     
     const response = await fetch(url, {
       method: 'POST',
